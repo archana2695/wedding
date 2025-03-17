@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Presentation</title>
+    <title>Live Google Slides</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             background-color: #f4f4f4;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: auto;
             background: white;
             padding: 20px;
@@ -24,24 +24,51 @@
             height: 500px;
             border: none;
         }
-        .qr-code {
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Live Presentation</h1>
-        <p>Scan the QR code below to view the slides on your phone.</p>
+        <h1>Live Google Slides</h1>
+        <p>This slide will update automatically when the presenter changes slides.</p>
 
-        <!-- Embed Google Slides (Replace with your own link) -->
-        <iframe src="https://meet.google.com/cgx-nrgz-fkq" frameborder="0" 
-            width="1440" 
-            height="839" 
-            allowfullscreen="true"></iframe>
-
+        <!-- Google Slides Embed (Dynamic) -->
+        <iframe id="slidesFrame" src="" allowfullscreen></iframe>
     </div>
+
+    <script>
+        const API_KEY = "AIzaSyBJqk3ePRN5gb85WWPr7OC4HzOUzVL1wAs"; // Replace with your Google API Key
+        const PRESENTATION_ID = "13dpEZ6lsnCmSe84vAZ_UeM3thGYlPtHhY0xh4jAxWi4"; // Replace with your Google Slides ID
+        let currentSlideIndex = 0;
+
+        // Function to update the iframe URL
+        function updateSlide(slideIndex) {
+            let iframe = document.getElementById("slidesFrame");
+            let slideURL = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/embed?start=false&loop=false&slide=${slideIndex}`;
+            iframe.src = slideURL;
+        }
+
+        // Function to fetch the current slide index
+        async function fetchCurrentSlide() {
+            try {
+                let response = await fetch(`https://slides.googleapis.com/v1/presentations/${PRESENTATION_ID}?key=${API_KEY}`);
+                let data = await response.json();
+                let currentSlide = data.slides.length - 1; // Get last updated slide
+                if (currentSlide !== currentSlideIndex) {
+                    currentSlideIndex = currentSlide;
+                    updateSlide(currentSlideIndex);
+                }
+            } catch (error) {
+                console.error("Error fetching slide data:", error);
+            }
+        }
+
+        // Update the slide every 5 seconds
+        setInterval(fetchCurrentSlide, 5000);
+
+        // Load the initial slide
+        updateSlide(0);
+    </script>
 
 </body>
 </html>
