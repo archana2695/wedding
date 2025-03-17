@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Presentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+        .qr-code {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Live Presentation</h1>
+        <p>Scan the QR code below to view the slides on your phone.</p>
+
+        <!-- Embed Google Slides (Replace with your own link) -->
+        <iframe src="https://docs.google.com/presentation/d/e/YOUR_PRESENTATION_ID/embed?start=true&loop=false&delayms=3000" allowfullscreen></iframe>
+
+        <!-- QR Code (Replace with the URL of this page) -->
+        <div class="qr-code">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=YOUR_WEBPAGE_URL" alt="QR Code">
+        </div>
+    </div>
+
+</body>
+</html>
