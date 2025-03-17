@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Control Panel</h1>
+    <p>Click the button below to refresh the slides.</p>
+    <button onclick="refreshSlides()">Refresh Slides</button>
+
+    <script>
+        function refreshSlides() {
+            // Send a message to the slides page to refresh the iframe
+            window.open('slides.html', 'slidesFrame').postMessage("refreshSlides", "*");
+        }
+    </script>
+
+</body>
+</html>
