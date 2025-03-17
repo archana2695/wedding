@@ -36,12 +36,9 @@
         <p>Scan the QR code below to view the slides on your phone.</p>
 
         <!-- Embed Google Slides (Replace with your own link) -->
-        <iframe src="https://docs.google.com/presentation/d/e/YOUR_PRESENTATION_ID/embed?start=true&loop=false&delayms=3000" allowfullscreen></iframe>
+        <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRTiBt0e4S2eMFXSAivNyd_65H8_4BVDPmEr7V1nwmNeMoV_Uk3nUIQxACVFkTKi4R8G-TO_4lbKMmX/pub?start=false&loop=false&delayms=3000
+" allowfullscreen></iframe>
 
-        <!-- QR Code (Replace with the URL of this page) -->
-        <div class="qr-code">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=YOUR_WEBPAGE_URL" alt="QR Code">
-        </div>
     </div>
 
 </body>
