@@ -3,41 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Slides Control</title>
+    <title>Live Google Slides</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #f4f4f4;
+        * {
+            margin: 0;
+            padding: 0;
+            border: 0;
         }
-        .container {
-            margin-top: 50px;
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: black; /* Ensures clean background */
         }
-        a {
-            display: block;
-            margin: 15px auto;
-            padding: 15px;
-            width: 200px;
-            text-decoration: none;
-            font-size: 18px;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            transition: background 0.3s;
-        }
-        a:hover {
-            background-color: #0056b3;
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
         }
     </style>
 </head>
 <body>
 
-    <h1>Welcome to the Live Slides System</h1>
     <div class="container">
-        <a href="slides.html">View Slides</a>
-        <a href="control.html">Control Slides</a>
+        <h1>Live Google Slides</h1>
+        <p>This slide will update automatically when the presenter changes slides 4.</p>
+
+        <!-- Google Slides Embed (Auto-Refreshing) -->
+        <iframe id="slidesFrame" src="https://docs.google.com/presentation/d/e/2PACX-1vRTiBt0e4S2eMFXSAivNyd_65H8_4BVDPmEr7V1nwmNeMoV_Uk3nUIQxACVFkTKi4R8G-TO_4lbKMmX/embed?start=false&loop=false&delayms=3000" allowfullscreen></iframe>
     </div>
+
+    <script>
+        // Refresh iframe every 5 seconds
+        setInterval(function() {
+            document.getElementById("slidesFrame").src += "";
+        }, 50000);
+    </script>
 
 </body>
 </html>
