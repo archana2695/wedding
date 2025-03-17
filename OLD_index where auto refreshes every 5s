@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Google Slides</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            border: 0;
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: black; /* Ensures clean background */
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Live Google Slides</h1>
+        <p>This slide will update automatically when the presenter changes slides 4.</p>
+
+        <!-- Google Slides Embed (Auto-Refreshing) -->
+        <iframe id="slidesFrame" src="https://docs.google.com/presentation/d/e/2PACX-1vRTiBt0e4S2eMFXSAivNyd_65H8_4BVDPmEr7V1nwmNeMoV_Uk3nUIQxACVFkTKi4R8G-TO_4lbKMmX/embed?start=false&loop=false&delayms=3000" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        // Refresh iframe every 5 seconds
+        setInterval(function() {
+            document.getElementById("slidesFrame").src += "";
+        }, 50000);
+    </script>
+
+</body>
+</html>
