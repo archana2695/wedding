@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Live Canva Slides</title>
+    <title>Ceremony Slides</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
       * {
@@ -18,20 +18,31 @@
         overflow: hidden;
         background-color: black; /* Ensures clean background */
       }
-      iframe {
+      #imageContainer {
         position: absolute;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      #loadingMessage {
+        color: white;
+        font-size: 24px;
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <!-- Canva Embed (Auto-Refreshing) -->
-      <iframe id="slidesFrame" allowfullscreen></iframe>
+    <div id="imageContainer">
+      <div id="loadingMessage">Loading...</div>
     </div>
 
     <script>
@@ -41,12 +52,19 @@
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdm12cGprcGNncWljeWNqcmxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjU3NzY5NCwiZXhwIjoyMDYyMTUzNjk0fQ.HtHzuuld0FGvaKLO5eycMi8MCXSBelmKPZCLWZpavng";
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // Base Canva URL
-      const baseUrl =
-        "https://www.canva.com/design/DAGiAt4uo5c/wCtYEeGlLnyAL05qIV6jGg/view?embed";
-
       // Variable to track the current slide number
       let currentSlideNumber = null;
+      const imageContainer = document.getElementById("imageContainer");
+
+      // Function to get all image files from ceremony folder
+      let ceremonyImages = [];
+
+      // Function to preload images
+      async function preloadImages() {
+        // In a real GitHub Pages environment, we would need to know the names
+        // of the images in advance or use a server component
+        // For now, we'll load them on demand
+      }
 
       // Function to fetch slide data
       async function fetchSlideData() {
@@ -74,22 +92,112 @@
           }
         } catch (error) {
           console.error("Error fetching slide data:", error);
+          imageContainer.innerHTML =
+            '<div id="loadingMessage">Error loading slide data</div>';
         }
       }
 
       // Function to update the slide
       function updateSlide(slideNumber) {
-        // Adjust slide_number (Canva pages start at 1, not 0)
-        const pageNumber = slideNumber + 1;
-        // Update iframe src
-        document.getElementById("slidesFrame").src = `${baseUrl}#${pageNumber}`;
+        // Clear the container
+        imageContainer.innerHTML =
+          '<div id="loadingMessage">Loading slide ' + slideNumber + "...</div>";
+
+        // Get image name based on slideNumber
+        let imageName;
+        switch (slideNumber) {
+          case 0:
+          case 1:
+            imageName = "1. Before we start.png";
+            break;
+          case 2:
+            imageName = "2. Ganesh Puja.png";
+            break;
+          case 3:
+            imageName = "3. Jilakara Bellam.png";
+            break;
+          case 4:
+            imageName = "4. Kanyadaanam.png";
+            break;
+          case 5:
+            imageName = "5. Mangalya Dharanam.png";
+            break;
+          case 6:
+            imageName = "6. Talambralu.png";
+            break;
+          case 7:
+            imageName = "7. Mala Dharanam.png";
+            break;
+          case 8:
+            imageName = "8. Laaja Homam.png";
+            break;
+          case 9:
+            imageName = "9. Saptapadi.png";
+            break;
+          case 10:
+            imageName = "10. Arundhati Darshanam & Arati.png";
+            break;
+          default:
+            // If slideNumber is beyond our range, cycle back or use a default
+            imageName = "1. Before we start.png";
+            console.log(
+              `No image mapped for slide ${slideNumber}, using default`
+            );
+        }
+
+        // Try different path approaches
+        console.log("Current URL path:", window.location.pathname);
+        console.log("Current URL:", window.location.href);
+
+        // Try multiple paths
+        const paths = [
+          `ceremony/${imageName}`,
+          `./ceremony/${imageName}`,
+          `/ceremony/${imageName}`,
+          `../ceremony/${imageName}`,
+        ];
+
+        // Try loading from each path
+        tryNextPath(paths, 0);
+      }
+
+      // Try loading from multiple paths
+      function tryNextPath(paths, index) {
+        if (index >= paths.length) {
+          // We've tried all paths
+          imageContainer.innerHTML = `<div id="loadingMessage">
+                  Failed to load image from all paths.<br>
+                  We tried:<br>
+                  ${paths.join("<br>")}
+              </div>`;
+          return;
+        }
+
+        const path = paths[index];
+        console.log(`Trying path ${index + 1}/${paths.length}: ${path}`);
+
+        const img = new Image();
+        img.src = path;
+
+        img.onload = function () {
+          // Success! Clear container and add this image
+          imageContainer.innerHTML = "";
+          imageContainer.appendChild(img);
+          console.log(`Successfully loaded: ${path}`);
+        };
+
+        img.onerror = function () {
+          // Try next path
+          console.error(`Failed to load from path: ${path}`);
+          tryNextPath(paths, index + 1);
+        };
       }
 
       // Initial fetch
       fetchSlideData();
 
       // Refresh data every 5 seconds
-      setInterval(fetchSlideData, 5000);
+      setInterval(fetchSlideData, 1000);
     </script>
   </body>
 </html>
