@@ -19,23 +19,22 @@
         background-color: black; /* Ensures clean background */
       }
       #imageContainer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
       }
       img {
         max-width: 100%;
-        max-height: 100%;
+        max-height: 100vh;
+        height: auto;
         object-fit: contain;
       }
       #loadingMessage {
         color: white;
-        font-size: 24px;
+        font-size: 16px;
         text-align: center;
       }
     </style>
@@ -166,10 +165,10 @@
         if (index >= paths.length) {
           // We've tried all paths
           imageContainer.innerHTML = `<div id="loadingMessage">
-                  Failed to load image from all paths.<br>
-                  We tried:<br>
-                  ${paths.join("<br>")}
-              </div>`;
+            Failed to load image from all paths.<br>
+            Please check network connectivity or<br>
+            repository configuration.
+          </div>`;
           return;
         }
 
@@ -177,6 +176,13 @@
         console.log(`Trying path ${index + 1}/${paths.length}: ${path}`);
 
         const img = new Image();
+
+        // Apply styles programmatically to ensure they're set
+        img.style.maxWidth = "100%";
+        img.style.maxHeight = "100vh";
+        img.style.height = "auto";
+        img.style.objectFit = "contain";
+
         img.src = path;
 
         img.onload = function () {
