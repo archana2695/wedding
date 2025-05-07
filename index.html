@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ceremony Slides</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="common.js"></script>
     <style>
       * {
         margin: 0;
@@ -46,35 +47,16 @@
 
     <script>
       // Initialize Supabase client
-      const supabaseUrl = "https://mkvmvpjkpcgqicycjrlp.supabase.co";
-      const supabaseKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdm12cGprcGNncWljeWNqcmxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjU3NzY5NCwiZXhwIjoyMDYyMTUzNjk0fQ.HtHzuuld0FGvaKLO5eycMi8MCXSBelmKPZCLWZpavng";
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      const supabase = initSupabase();
 
       // Variable to track the current slide number
       let currentSlideNumber = null;
       const imageContainer = document.getElementById("imageContainer");
 
-      // Function to get all image files from ceremony folder
-      let ceremonyImages = [];
-
-      // Function to preload images
-      async function preloadImages() {
-        // In a real GitHub Pages environment, we would need to know the names
-        // of the images in advance or use a server component
-        // For now, we'll load them on demand
-      }
-
       // Function to fetch slide data
-      async function fetchSlideData() {
+      async function fetchSlideDataAndUpdate() {
         try {
-          const { data, error } = await supabase
-            .from("slide")
-            .select("*")
-            .limit(1)
-            .single();
-
-          if (error) throw error;
+          const data = await fetchSlideData(supabase);
 
           // Only update if slide number has changed
           const newSlideNumber = data.slide_number || 0;
@@ -90,9 +72,9 @@
             updateSlide(newSlideNumber);
           }
         } catch (error) {
-          console.error("Error fetching slide data:", error);
           imageContainer.innerHTML =
             '<div id="loadingMessage">Error loading slide data</div>';
+          console.error("Error fetching slide data:", error);
         }
       }
 
@@ -102,59 +84,8 @@
         imageContainer.innerHTML =
           '<div id="loadingMessage">Loading slide ' + slideNumber + "...</div>";
 
-        // Get image name based on slideNumber
-        let imageName;
-        switch (slideNumber) {
-          case 0:
-          case 1:
-            imageName = "1. Before we start.png";
-            break;
-          case 2:
-            imageName = "2. Ganesh Puja.png";
-            break;
-          case 3:
-            imageName = "3. Jilakara Bellam.png";
-            break;
-          case 4:
-            imageName = "4. Kanyadaanam.png";
-            break;
-          case 5:
-            imageName = "5. Mangalya Dharanam.png";
-            break;
-          case 6:
-            imageName = "6. Talambralu.png";
-            break;
-          case 7:
-            imageName = "7. Mala Dharanam.png";
-            break;
-          case 8:
-            imageName = "8. Laaja Homam.png";
-            break;
-          case 9:
-            imageName = "9. Saptapadi.png";
-            break;
-          case 10:
-            imageName = "10. Arundhati Darshanam & Arati.png";
-            break;
-          default:
-            // If slideNumber is beyond our range, cycle back or use a default
-            imageName = "1. Before we start.png";
-            console.log(
-              `No image mapped for slide ${slideNumber}, using default`
-            );
-        }
-
-        // Try different path approaches
-        console.log("Current URL path:", window.location.pathname);
-        console.log("Current URL:", window.location.href);
-
-        // Try multiple paths
-        const paths = [
-          `ceremony/${imageName}`,
-          `./ceremony/${imageName}`,
-          `/ceremony/${imageName}`,
-          `../ceremony/${imageName}`,
-        ];
+        // Get image paths from common.js
+        const paths = getImagePathBySlideNumber(slideNumber);
 
         // Try loading from each path
         tryNextPath(paths, 0);
@@ -200,10 +131,10 @@
       }
 
       // Initial fetch
-      fetchSlideData();
+      fetchSlideDataAndUpdate();
 
-      // Refresh data every 5 seconds
-      setInterval(fetchSlideData, 1000);
+      // Refresh data every 1 second
+      setInterval(fetchSlideDataAndUpdate, 1000);
     </script>
   </body>
 </html>

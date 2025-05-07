@@ -3,15 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ceremony Slide Controller</title>
+    <title>Ceremony Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="common.js"></script>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-        max-width: 600px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 20px;
+      }
+      h1,
+      h2 {
         text-align: center;
       }
       .controls {
@@ -39,23 +43,39 @@
         background-color: #cccccc;
         cursor: not-allowed;
       }
-      #slideNumber {
-        font-size: 24px;
+      .current-slide {
+        text-align: center;
         margin: 20px 0;
-      }
-      .jump-controls {
-        margin: 20px 0;
-      }
-      input {
         padding: 10px;
-        font-size: 16px;
-        width: 60px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+      }
+      .current-slide h3 {
+        margin: 0 0 10px 0;
+      }
+      .slide-preview {
+        margin: 20px auto;
+        max-width: 400px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
         text-align: center;
       }
+      .slide-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+      }
+      #slideTitle {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
       #statusMessage {
-        margin-top: 20px;
+        margin: 20px 0;
         padding: 10px;
         border-radius: 4px;
+        text-align: center;
       }
       .success {
         background-color: #d4edda;
@@ -65,253 +85,340 @@
         background-color: #f8d7da;
         color: #721c24;
       }
-      .image-preview {
-        margin: 20px auto;
-        max-width: 80%;
+      .all-slides {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+      }
+      .slide-item {
         border: 1px solid #ddd;
+        border-radius: 5px;
         padding: 10px;
-        background: #f9f9f9;
-        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s;
       }
-      .image-preview img {
+      .slide-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .slide-item.active {
+        border-color: #4caf50;
+        background-color: #f0fff0;
+      }
+      .slide-item img {
         max-width: 100%;
-        max-height: 300px;
+        height: 100px;
         object-fit: contain;
-      }
-      .preview-title {
         margin-bottom: 10px;
-        font-weight: bold;
       }
-      .not-found {
-        padding: 20px;
-        color: #721c24;
-        background-color: #f8d7da;
-        border-radius: 4px;
+      .slide-item .title {
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .image-checker {
+        margin: 30px 0;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+      }
+      .image-status {
+        margin-top: 10px;
+        font-size: 14px;
+      }
+      .image-status div {
+        margin-bottom: 5px;
+      }
+      .success-status {
+        color: green;
+      }
+      .error-status {
+        color: red;
       }
     </style>
   </head>
   <body>
-    <h1>Ceremony Slide Controller</h1>
+    <h1>Ceremony Slide Admin</h1>
 
-    <div id="slideNumber">Current Slide: Loading...</div>
+    <div class="current-slide">
+      <h3>Current Slide</h3>
+      <div id="slideNumber">Loading...</div>
+      <div id="slideTitle"></div>
+    </div>
+
+    <div class="slide-preview">
+      <img id="currentPreview" alt="Current slide preview" />
+    </div>
 
     <div class="controls">
       <button id="prevBtn" onclick="changeSlide(-1)">Previous</button>
       <button id="nextBtn" onclick="changeSlide(1)">Next</button>
     </div>
 
-    <div class="jump-controls">
-      <label for="jumpInput">Jump to slide:</label>
-      <input type="number" id="jumpInput" min="0" value="0" />
-      <button onclick="jumpToSlide()">Go</button>
-    </div>
-
-    <div class="image-preview">
-      <div class="preview-title">Current Slide Preview</div>
-      <div id="previewContainer">Loading preview...</div>
-    </div>
-
     <div id="statusMessage"></div>
+
+    <div class="image-checker">
+      <h2>Image Checker</h2>
+      <button id="checkImagesBtn" onclick="checkAllImages()">
+        Check All Images
+      </button>
+      <div id="imageStatus" class="image-status"></div>
+    </div>
+
+    <h2>All Slides</h2>
+    <div id="allSlides" class="all-slides">
+      <!-- Slides will be dynamically populated here -->
+    </div>
 
     <script>
       // Initialize Supabase client
-      const supabaseUrl = "https://mkvmvpjkpcgqicycjrlp.supabase.co";
-      const supabaseKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdm12cGprcGNncWljeWNqcmxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjU3NzY5NCwiZXhwIjoyMDYyMTUzNjk0fQ.HtHzuuld0FGvaKLO5eycMi8MCXSBelmKPZCLWZpavng";
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      const supabase = initSupabase();
 
       // Track current slide
       let currentSlideNumber = 0;
-      let slideId = null;
+      const maxSlideNumber = getMaxSlideNumber();
+
+      // Elements
+      const slideNumberEl = document.getElementById("slideNumber");
+      const slideTitleEl = document.getElementById("slideTitle");
+      const currentPreviewEl = document.getElementById("currentPreview");
+      const prevBtnEl = document.getElementById("prevBtn");
+      const nextBtnEl = document.getElementById("nextBtn");
+      const statusMessageEl = document.getElementById("statusMessage");
+      const imageStatusEl = document.getElementById("imageStatus");
+      const allSlidesEl = document.getElementById("allSlides");
 
       // Function to fetch current slide data
-      async function fetchSlideData() {
+      async function loadCurrentSlide() {
         try {
-          const { data, error } = await supabase
-            .from("slide")
-            .select("*")
-            .limit(1)
-            .single();
-
-          if (error) throw error;
+          const data = await fetchSlideData(supabase);
 
           // Update UI with current slide number
-          slideId = data.id;
           currentSlideNumber = data.slide_number || 0;
-          document.getElementById(
-            "slideNumber"
-          ).textContent = `Current Slide: ${currentSlideNumber}`;
-          document.getElementById("jumpInput").value = currentSlideNumber;
 
-          // Update button states
-          document.getElementById("prevBtn").disabled = currentSlideNumber <= 0;
-
-          // Update image preview
-          updateImagePreview(currentSlideNumber);
+          updateUI();
         } catch (error) {
-          console.error("Error fetching slide data:", error);
           showStatus("Error loading slide data", false);
         }
       }
 
-      // Function to update slide number
-      async function updateSlideNumber(newSlideNumber) {
-        if (newSlideNumber < 0) {
-          showStatus("Slide number cannot be negative", false);
+      // Update UI elements
+      function updateUI() {
+        // Update slide number display
+        slideNumberEl.textContent = `Slide ${currentSlideNumber} of ${maxSlideNumber}`;
+
+        // Get image info
+        const imageInfo =
+          CEREMONY_IMAGES.find((img) => img.id === currentSlideNumber) ||
+          CEREMONY_IMAGES[0];
+        slideTitleEl.textContent = imageInfo.title;
+
+        // Update preview image
+        updatePreviewImage(currentSlideNumber);
+
+        // Update button states
+        prevBtnEl.disabled = currentSlideNumber <= 0;
+        nextBtnEl.disabled = currentSlideNumber >= maxSlideNumber;
+
+        // Highlight current slide in the all slides grid
+        updateActiveSlide();
+      }
+
+      // Update preview image
+      function updatePreviewImage(slideNumber) {
+        currentPreviewEl.src = "";
+        currentPreviewEl.alt = "Loading...";
+
+        // Get image paths
+        const paths = getImagePathBySlideNumber(slideNumber);
+        tryLoadImage(paths, 0, currentPreviewEl);
+      }
+
+      // Try to load image with different paths
+      function tryLoadImage(paths, index, imgElement) {
+        if (index >= paths.length) {
+          imgElement.alt = "Image not found";
           return;
         }
 
-        try {
-          const { error } = await supabase
-            .from("slide")
-            .update({ slide_number: newSlideNumber })
-            .eq("id", slideId);
+        const path = paths[index];
+        const img = new Image();
+        img.src = path;
 
-          if (error) throw error;
+        img.onload = function () {
+          imgElement.src = path;
+          imgElement.alt = `Slide ${currentSlideNumber}`;
+        };
 
+        img.onerror = function () {
+          // Try next path
+          tryLoadImage(paths, index + 1, imgElement);
+        };
+      }
+
+      // Function to change slide by increment
+      async function changeSlide(increment) {
+        const newSlideNumber = currentSlideNumber + increment;
+
+        // Validate slide number
+        if (newSlideNumber < 0 || newSlideNumber > maxSlideNumber) {
+          return;
+        }
+
+        // Update in Supabase
+        const success = await updateSlideNumber(supabase, newSlideNumber);
+
+        if (success) {
           currentSlideNumber = newSlideNumber;
-          document.getElementById(
-            "slideNumber"
-          ).textContent = `Current Slide: ${newSlideNumber}`;
-          document.getElementById("jumpInput").value = newSlideNumber;
-          document.getElementById("prevBtn").disabled = newSlideNumber <= 0;
-
-          // Update image preview
-          updateImagePreview(newSlideNumber);
-
+          updateUI();
           showStatus(`Slide updated to ${newSlideNumber}`, true);
-        } catch (error) {
-          console.error("Error updating slide:", error);
+        } else {
           showStatus("Failed to update slide", false);
         }
       }
 
-      // Function to change slide by increment
-      function changeSlide(increment) {
-        updateSlideNumber(currentSlideNumber + increment);
+      // Jump to specific slide
+      async function jumpToSlide(slideNum) {
+        // Validate slide number
+        if (slideNum < 0 || slideNum > maxSlideNumber) {
+          return;
+        }
+
+        // Update in Supabase
+        const success = await updateSlideNumber(supabase, slideNum);
+
+        if (success) {
+          currentSlideNumber = slideNum;
+          updateUI();
+          showStatus(`Jumped to slide ${slideNum}`, true);
+        } else {
+          showStatus("Failed to update slide", false);
+        }
       }
 
-      // Function to jump to specific slide
-      function jumpToSlide() {
-        const slideNum = parseInt(document.getElementById("jumpInput").value);
-        if (!isNaN(slideNum) && slideNum >= 0) {
-          updateSlideNumber(slideNum);
-        } else {
-          showStatus("Please enter a valid slide number", false);
+      // Check if all images exist
+      async function checkAllImages() {
+        imageStatusEl.innerHTML = "<div>Checking images...</div>";
+
+        const results = [];
+
+        // Check each image
+        for (const image of CEREMONY_IMAGES) {
+          const paths = getImagePathBySlideNumber(image.id);
+          const result = await checkImageExists(paths);
+          results.push({
+            id: image.id,
+            name: image.name,
+            exists: result.exists,
+            path: result.path,
+          });
         }
+
+        // Display results
+        displayImageCheckResults(results);
       }
 
-      // Update image preview
-      function updateImagePreview(slideNumber) {
-        const previewContainer = document.getElementById("previewContainer");
-        previewContainer.innerHTML = "Loading preview...";
+      // Check if image exists by trying to load it
+      function checkImageExists(paths) {
+        return new Promise((resolve) => {
+          function tryPath(index) {
+            if (index >= paths.length) {
+              resolve({ exists: false, path: null });
+              return;
+            }
 
-        // Use the correct path - GitHub Pages URLs are relative to repository root
-        const basePath = window.location.pathname.includes("/wedding")
-          ? "/wedding"
-          : "";
+            const img = new Image();
+            img.onload = () => resolve({ exists: true, path: paths[index] });
+            img.onerror = () => tryPath(index + 1);
+            img.src = paths[index];
+          }
 
-        // Get slide names for display
-        const slideNames = [
-          { num: 1, name: "Before we start" },
-          { num: 2, name: "Ganesh Puja" },
-          { num: 3, name: "Jilakara Bellam" },
-          { num: 4, name: "Kanyadaanam" },
-          { num: 5, name: "Mangalya Dharanam" },
-          { num: 6, name: "Talambralu" },
-          { num: 7, name: "Mala Dharanam" },
-          { num: 8, name: "Laaja Homam" },
-          { num: 9, name: "Saptapadi" },
-          { num: 10, name: "Arundhati Darshanam & Arati" },
-        ];
+          tryPath(0);
+        });
+      }
 
-        // Update slide number display with name if available
-        const slideName = slideNames.find((s) => s.num === slideNumber);
-        if (slideName) {
-          document.getElementById(
-            "slideNumber"
-          ).textContent = `Slide ${slideNumber}: ${slideName.name}`;
-        } else {
-          document.getElementById(
-            "slideNumber"
-          ).textContent = `Slide ${slideNumber}`;
+      // Display image check results
+      function displayImageCheckResults(results) {
+        let html = "";
+
+        const successCount = results.filter((r) => r.exists).length;
+        html += `<div>${successCount} of ${results.length} images found</div>`;
+
+        for (const result of results) {
+          if (result.exists) {
+            html += `<div class="success-status">✓ Slide ${result.id}: ${result.name}</div>`;
+          } else {
+            html += `<div class="error-status">✗ Slide ${result.id}: ${result.name} - NOT FOUND</div>`;
+          }
         }
 
-        // Get image path based on slideNumber
-        let imagePath;
-        switch (slideNumber) {
-          case 0:
-          case 1:
-            imagePath = `${basePath}/ceremony/1. Before we start.png`;
-            break;
-          case 2:
-            imagePath = `${basePath}/ceremony/2. Ganesh Puja.png`;
-            break;
-          case 3:
-            imagePath = `${basePath}/ceremony/3. Jilakara Bellam.png`;
-            break;
-          case 4:
-            imagePath = `${basePath}/ceremony/4. Kanyadaanam.png`;
-            break;
-          case 5:
-            imagePath = `${basePath}/ceremony/5. Mangalya Dharanam.png`;
-            break;
-          case 6:
-            imagePath = `${basePath}/ceremony/6. Talambralu.png`;
-            break;
-          case 7:
-            imagePath = `${basePath}/ceremony/7. Mala Dharanam.png`;
-            break;
-          case 8:
-            imagePath = `${basePath}/ceremony/8. Laaja Homam.png`;
-            break;
-          case 9:
-            imagePath = `${basePath}/ceremony/9. Saptapadi.png`;
-            break;
-          case 10:
-            imagePath = `${basePath}/ceremony/10. Arundhati Darshanam & Arati.png`;
-            break;
-          default:
-            // If slideNumber is beyond our range, use default
-            imagePath = `${basePath}/ceremony/1. Before we start.png`;
-            previewContainer.innerHTML = `<div class="not-found">No image for slide ${slideNumber}</div>`;
-            return;
+        imageStatusEl.innerHTML = html;
+      }
+
+      // Create all slides grid
+      function createAllSlidesGrid() {
+        allSlidesEl.innerHTML = "";
+
+        for (const image of CEREMONY_IMAGES) {
+          const slideDiv = document.createElement("div");
+          slideDiv.className = "slide-item";
+          slideDiv.setAttribute("data-slide", image.id);
+          slideDiv.onclick = () => jumpToSlide(image.id);
+
+          const img = document.createElement("img");
+          img.alt = `Slide ${image.id}`;
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = image.title;
+
+          slideDiv.appendChild(img);
+          slideDiv.appendChild(title);
+          allSlidesEl.appendChild(slideDiv);
+
+          // Load image
+          const paths = getImagePathBySlideNumber(image.id);
+          tryLoadImage(paths, 0, img);
         }
 
-        // Load the image
-        const img = new Image();
-        img.src = imagePath;
+        // Highlight current slide
+        updateActiveSlide();
+      }
 
-        img.onload = function () {
-          // Success! Show the image
-          previewContainer.innerHTML = "";
-          previewContainer.appendChild(img);
-        };
-
-        img.onerror = function () {
-          // Error loading image
-          previewContainer.innerHTML = `<div class="not-found">Error loading image: ${imagePath}</div>`;
-        };
+      // Update active slide highlight
+      function updateActiveSlide() {
+        const slideItems = document.querySelectorAll(".slide-item");
+        slideItems.forEach((item) => {
+          const slideNum = parseInt(item.getAttribute("data-slide"));
+          if (slideNum === currentSlideNumber) {
+            item.classList.add("active");
+          } else {
+            item.classList.remove("active");
+          }
+        });
       }
 
       // Show status message
       function showStatus(message, isSuccess) {
-        const statusElement = document.getElementById("statusMessage");
-        statusElement.textContent = message;
-        statusElement.className = isSuccess ? "success" : "error";
+        statusMessageEl.textContent = message;
+        statusMessageEl.className = isSuccess ? "success" : "error";
 
         // Clear message after 3 seconds
         setTimeout(() => {
-          statusElement.textContent = "";
-          statusElement.className = "";
+          statusMessageEl.textContent = "";
+          statusMessageEl.className = "";
         }, 3000);
       }
 
       // Initialize
-      fetchSlideData();
+      loadCurrentSlide();
+      createAllSlidesGrid();
 
-      // Auto-refresh every 30 seconds to stay in sync
-      setInterval(fetchSlideData, 30000);
+      // Auto-refresh every 5 seconds to stay in sync
+      setInterval(loadCurrentSlide, 5000);
     </script>
   </body>
 </html>
