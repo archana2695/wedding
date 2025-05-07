@@ -1,44 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Google Slides</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slide Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            border: 0;
-        }
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            background-color: black; /* Ensures clean background */
-        }
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        background-color: black; /* Ensures clean background */
+      }
+      #content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 48px;
+        font-family: monospace;
+        padding: 20px;
+        text-align: center;
+      }
+      iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        border: none;
+      }
     </style>
-</head>
-<body>
-
-    <div class="container">
-        <!-- Google Slides Embed (Auto-Refreshing) -->
-        <iframe id="slidesFrame" src="https://www.canva.com/design/DAGiAt4uo5c/wCtYEeGlLnyAL05qIV6jGg/view?embed" allowfullscreen></iframe>
-    </div>
+  </head>
+  <body>
+    <div id="content">Loading...</div>
 
     <script>
-        // Refresh iframe every 5 seconds
-        setInterval(function() {
-            document.getElementById("slidesFrame").src += "";
-        }, 1000);
-    </script>
+      // Initialize Supabase client
+      const supabaseUrl = "https://mkvmvpjkpcgqicycjrlp.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdm12cGprcGNncWljeWNqcmxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjU3NzY5NCwiZXhwIjoyMDYyMTUzNjk0fQ.HtHzuuld0FGvaKLO5eycMi8MCXSBelmKPZCLWZpavng";
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-</body>
+      // Function to fetch slide data
+      async function fetchSlideData() {
+        try {
+          const { data, error } = await supabase
+            .from("slide")
+            .select("*")
+            .limit(1)
+            .single();
+
+          if (error) throw error;
+
+          displaySlide(data);
+        } catch (error) {
+          console.error("Error fetching slide data:", error);
+          document.getElementById("content").innerHTML =
+            "Error loading slide data";
+        }
+      }
+
+      // Function to display slide data
+      function displaySlide(slideData) {
+        const contentDiv = document.getElementById("content");
+        contentDiv.innerHTML = JSON.stringify(slideData);
+      }
+
+      // Fetch initial data
+      fetchSlideData();
+
+      // Refresh data every 5 seconds
+      setInterval(fetchSlideData, 5000);
+    </script>
+  </body>
 </html>
